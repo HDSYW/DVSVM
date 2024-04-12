@@ -1,27 +1,30 @@
 clear
 clc
 close all
-diary 'Diary.txt'
+diary 'Diary1.txt'
 ttic=tic;
-% for xunhuan=13
-%     fprintf('!!!SyntheticSeed=%s!!!\n',num2str(xunhuan))
+for xunhuan=2
+    fprintf('!!!SyntheticSeed=%s!!!\n',num2str(xunhuan))
     Para. AutoRec = "ON";
-    Figure="ON";
-%     Figure="OFF";
-    Figurename='normal';
+%     Figure="ON";
+    Figure="OFF";
+    Figurename='normalChisquare13';
     Synthetic="ON";
 %     Synthetic="OFF";
     %% ============================== Ⅰ Running Setting ==============================
     % ----------◆ -1- Model Selecting ◆----------
     ModS = [];
-    ModS = [ModS;"LIB_L1SVCprob"];
+%     ModS = [ModS;"LIB_L1SVCprob"];
     ModS = [ModS;"LIB_L1SVC"];
-    ModS = [ModS;"VSVM"];
+    % ModS = [ModS;"LIB_lin"];
+%     ModS = [ModS;"VSVM"];
+    % ModS = [ModS;"DVSVMnon_J"];
     ModS = [ModS;"DVSVMnon_QP"];
+    % ModS = [ModS;"LSSVM"];
     % ----------◆ -2- ◆----------
     datas=[];
-%     datas=[datas;"train"];
-    datas=[datas;"test"];
+    datas=[datas;"train"];
+%     datas=[datas;"test"];
     % datas=[datas;"all"];
     data=datas(1);
     % ----------◆ -3- Feature Kernel types ◆----------
@@ -39,7 +42,7 @@ ttic=tic;
     pa.min = -8  ;  pa.step =  2 ;  pa.max = 8;
     % ----------◆ -9- Synthetic Gen ◆----------
     if sum(Synthetic=="ON")
-        DData = Gen_Distri("normal",1 ,2,"normal" ,4,2,100,2);
+        DData = Gen_Distri("normal",1 ,2,"normal" ,2,4,100,xunhuan);
         DData=sortrows(DData,1);
         Probsvm=zeros(size(59,1),1);Probvsvm=zeros(size(59,1),1);Probdvsvm=zeros(size(59,1),1);
     end
@@ -100,6 +103,15 @@ ttic=tic;
                         Data.X_test_T=X_test_T;
                         Data.Y_test_T=Y_test_T;
                         Res = SVM_rbf(Data,k,Para.kpar.ktype,pa);
+                        result=catstruct(res,Res);
+                    end
+                    if sum(Mod=='DVSVMnon_J')
+                        pa.itmO = 5; pa.itmSh = 10; pa.plt = 0;  pa.epsi = 0; pa.thr = 0.5;
+                        Data.X_train_T=X_train_T;
+                        Data.Y_train_T=Y_train_T;
+                        Data.X_test_T=X_test_T;
+                        Data.Y_test_T=Y_test_T;
+                        Res = DVSVM_J_F(Data,k,Para.kpar.ktype,pa,data);
                         result=catstruct(res,Res);
                     end
                     if sum(Mod=='DVSVMnon_QP')
@@ -187,6 +199,11 @@ ttic=tic;
         legend("Origin","SVMprob","VSVM","DVSVM")
         saveas(gcf, [Figurename,'.png']);
     end
+    %% ============================== VI Email to me ==============================
+    %     receiver = '2470566766@qq.com';
+    %     mailtitle = 'The experiment has ended, come check it out';
+    %     mailcontent = 'Finish! ! The save location is:';
+    %     Mail_To_Me(receiver,mailtitle,mailcontent)
     toc(ttic)
     diary off
-% end
+end
